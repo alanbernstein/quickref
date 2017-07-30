@@ -1,0 +1,29 @@
+"%[parameter][flags][width][.precision][length]type".  # format specifier/placeholder full syntax
+
+'n$'    # [parameter] - where n is the number of the parameter specified after the format string. ie, printf("%2$d %1$#x %1$d",16,17) produces "17 0x10 16"
+
+number  # [flags] - left-pad with spaces to make length equal number (what happens when number < number of digits? doesnt truncate)
+0       # [flags] - pad with zeros instead of spaces
+-       # [flags] - left-align instead of default right-align (equivalently, right-pad instead of left-pad)
++       # [flags] - denote sign
+'#'     # [flags] - alternate form - modifies trailing zeros for f,e,g, adds 0, 0x, 0X for o, x, X
+
+number  # [width] left-pad to specified width
+*       # [width] use argument to printf function, use that many spaces, e.g., fprintf('%*d\n',5,10) -> '   10'
+
+number  # [.precision] use that number of digits AFTER the decimal
+*       # [.precision] use argument to printf function, use that many spaces, e.g., fprintf('%*d\n',5,10) -> '   10'
+
+[length] - specifies length (in bytes) of parameter to be used (why exactly would you want to do this..?
+
+d, i   # [type] - signed decimal int (identical for print, different for scan)
+u      # [type] - unsigned decimal int
+f,F    # [type] - fixed point notation (F capitalizes INF, NAN)
+e,E    # [type] - scientific notation (E capitalizes the e)
+g,G    # [type] - more appropriate of e, f
+x,X    # [type] - hex (X capitalizes letters)
+o      # [type] - octal
+c      # [type] - char
+p      # [type] - void pointer (?)
+n      # [type] - nothing, but write number of characters written into an integer pointer parameter
+s      # [type] - string

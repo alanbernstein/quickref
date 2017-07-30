@@ -26,7 +26,6 @@ import os
 import os.path
 import subprocess
 import re
-from socket import gethostname
 
 # this is kind of kludgy - at first I used filesystem soft links for this purpose,
 # but when I realized dropbox doesn't really support soft links, I stopped. I still
@@ -44,11 +43,11 @@ if os.path.exists(alias_file):
 
 external_aliases = {}
 
-qr_path = os.getenv('QR')
+qr_path = os.getenv('QR', 'undefined')
 
-if not qr_path:
-    print('no qr path defined for this machine (%s)!' % gethostname())
-    exit(1)
+if qr_path == 'undefined':
+    qr_path = here + '/examples'
+    print('no $QR path defined, using examples directory')
 
 
 def main(argv):
