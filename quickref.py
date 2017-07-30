@@ -137,6 +137,7 @@ def open_files_for_editing(topics):
 
     editor = os.getenv('EDITOR', 'undefined')
     if editor == 'undefined':
+        editor = 'vim'
         print('$EDITOR not defined, using vim')
 
     print(fnames)
