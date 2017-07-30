@@ -77,7 +77,7 @@ def main(argv):
     elif len(argv) == 2:
         # qr topic                   # show all lines of topic
         topic = expand_aliases(argv[1:2])[0]
-        show_search_results(topic, '.')
+        show_search_results(topic, '')
 
     else:
         # qr topic pattern [pattern  # show all lines matching patterns
@@ -190,9 +190,11 @@ def search_file(fname, pattern_list):
         for line in f:
             print_flag = True
             for pattern in pattern_list:
-                if pattern not in line.lower():
+                m = re.search(pattern, line)
+                if not m:
                     print_flag = False
-            if print_flag or pattern_list[0] == '.':  # kludge until using regex
+
+            if print_flag:
                 res.append(line.rstrip())
 
     return '\n'.join(res)
