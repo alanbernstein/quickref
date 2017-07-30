@@ -9,7 +9,7 @@ Define the environment variable `QR`, which should be a path containing text fil
 Optionally, make sure your `EDITOR` environment variable is up to date, and qr will check that if you use the `qr edit` command.
 
 ## usage
-Topic files are simple, line-based note snippets. The power of this tool is in creating these files yourself, one line at a time, and including the keywords that you are likely to remember yourself.
+Topic files are simple, line-based note snippets. The power of this tool is in creating these files yourself, one line at a time, and including the keywords that you are likely to remember yourself. Some examples are included (they are just reference tables translated to plaintext format).
 
 `$ qr`
   show available quickref files (in `$QR`)
