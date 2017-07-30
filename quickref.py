@@ -28,7 +28,12 @@ import subprocess
 import re
 from socket import gethostname
 
-# this is kind of kludgy... oh well
+# this is kind of kludgy - at first I used filesystem soft links for this purpose,
+# but when I realized dropbox doesn't really support soft links, I stopped. I still
+# wanted to support "alias" functionality, so I added this.
+# aliases.json just contains a single json object containing KV pairs like "numpy": "py",
+# where numpy is an alias for the file $QR/py.txt
+
 aliases = {}
 here = os.path.dirname(os.path.realpath(__file__))
 alias_file = here + '/aliases.json'
