@@ -1,6 +1,12 @@
 Quickref is a simple CLI tool for interacting with a set of notes files. Use it to search for keywords by topic, and also to append lines of notes to the files.
 
+## setup
+
 It is currently just a single python file, which I use by including `#!/usr/local/bin/python`, and defining `alias qr="/path/to/quickref.py"`, because I like terse commands.
+
+Define the environment variable `QR`, which should be a path containing text files, each named according to its topic, `topic.txt`.
+
+Optionally, make sure your `EDITOR` environment variable is up to date, and qr will check that if you use the `qr edit` command.
 
 ## usage
 `$ qr`
