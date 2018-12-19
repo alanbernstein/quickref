@@ -15,7 +15,7 @@ $ qr topic term1 term2 ...
 $ qr add topic "line with spaces"
   add "line with spaces" to topic.txt
 $ qr edit [topic1 [topic2 ...]]
-  open specified topics in $EDITOR; this file if no topics supplied. (`emacsclient -n` hardcoded right now)
+  open specified topics in $EDITOR; this file if no topics supplied.
 $ qr alias topic shortcut
   create a new alias 'shortcut' for the topic 'topic' (not yet implemented)
 """
@@ -184,13 +184,13 @@ def show_results_from_all_files(pattern_list):
 
 
 def search_file(fname, pattern_list):
-    # TODO: use regex instead of string search
     res = []
+    compiled_pattern_list = [re.compile(p, re.IGNORECASE) for p in pattern_list]
     with open(fname) as f:
         for line in f:
             print_flag = True
-            for pattern in pattern_list:
-                m = re.search(pattern, line)
+            for pattern in compiled_pattern_list:
+                m = pattern.search(line)
                 if not m:
                     print_flag = False
 
