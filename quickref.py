@@ -8,6 +8,9 @@ $ qr topic
   a "topic" can be anything, but generally something like a language (py),
   application (blender), library/framework (django), command (git).
   also things like audio, pdf manipulation, CLI image editing.
+  a topic with a slash in it is split, the first part determines the
+  base path, the second part determines the topic. (not yet implemented, required
+  for duplicate topics across base paths)
 $ qr topic pattern
   show all lines from topic.txt matching regex pattern
 $ qr topic term1 term2 ...
@@ -43,12 +46,13 @@ if os.path.exists(alias_file):
 
 external_aliases = {}
 
-qr_path = os.getenv('QR', 'undefined')
+qr_path_var = os.getenv('QRPATH', 'undefined')
 
-if qr_path == 'undefined':
-    qr_path = here + '/examples'
-    print('no $QR path defined, using examples directory')
+if qr_path_var == 'undefined':
+    qr_path_var = here + '/examples'
+    print('no $QRPATH defined, using examples directory')
 
+qr_paths = qr_path_var.split(':')
 
 def main(argv):
     if len(argv) == 1:
@@ -119,7 +123,7 @@ def show_available_files():
         print(f[len(qr_path) + 1:-4])
 
 
-def get_all_qr_filenames(aliases=False):
+def get_all_qr_filenames(base, aliases=False):
     # TODO: implement aliases=True here?
     return glob.glob(qr_path + '/*.txt')
 
