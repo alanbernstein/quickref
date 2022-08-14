@@ -1,6 +1,15 @@
-#!/usr/local/bin/python
+#!/usr/bin/env python3
 """
 usage:
+qr is a concise line-delimited cheatsheet reference CLI.
+a `note` is a single line of text, containing anything you want.
+a `comment` is any content after the first '#' on a line
+a `cheatsheet` is a text file containing multiple notes, named like <topic>.txt
+a `base path` is a folder containing multiple cheatsheets
+configuration is done via an environment variable:
+QRPATH="/path/to/qr-1:/path/to/qr-2"
+this is a list of paths, delimitied with colons, like $PATH, $GOPATH, etc.
+
 $ qr
   show available quickref files (in $QR)
 $ qr topic
