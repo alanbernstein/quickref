@@ -52,7 +52,12 @@ if os.path.exists(alias_file):
 
 external_aliases = {}
 
-qr_path = os.getenv('QR', 'undefined')
+qr_path = os.getenv('QR_DATA_DIR', 'undefined')
+if qr_path == 'undefined':
+    qr_path = os.getenv('QR', 'undefined')
+    if qr_path != 'undefined':
+        print('env var QR is deprecated, update to $QR_DATA_DIR')
+
 
 if qr_path == 'undefined':
     qr_path = here + '/examples'
