@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """
 usage:
@@ -7,13 +8,13 @@ a `comment` is any content after the first '#' on a line
 a `cheatsheet` is a text file containing multiple notes, named like <topic>.txt
 a `base path` is a folder containing multiple cheatsheets
 configuration is done via an environment variable:
-QRPATH="/path/to/qr-1:/path/to/qr-2"
-this is a list of paths, delimitied with colons, like $PATH, $GOPATH, etc.
+QR_DATA_DIRS="/path/to/qr-1:/path/to/qr-2"
+this is a list of paths, delimited with colons, like $PATH.
 
 $ qr
-  show available quickref files (in $QR)
+  show available quickref files (in $QR_DATA_DIRS)
 $ qr topic
-  show all lines from $QR/topic.txt
+  show all lines from all matching $QR_DATA_DIRS/topic.txt
   a "topic" can be anything, but generally something like a language (py),
   application (blender), library/framework (django), command (git).
   also things like audio, pdf manipulation, CLI image editing.
@@ -52,17 +53,20 @@ if os.path.exists(alias_file):
 
 external_aliases = {}
 
-qr_path = os.getenv('QR_DATA_DIR', 'undefined')
-if qr_path == 'undefined':
-    qr_path = os.getenv('QR', 'undefined')
-    if qr_path != 'undefined':
-        print('env var QR is deprecated, update to $QR_DATA_DIR')
+qr_paths = os.getenv('QR_DATA_DIRS', 'undefined')
+if qr_paths == 'undefined':
+    qr_paths = os.getenv('QR', 'undefined')
+    if qr_paths != 'undefined':
+        print('env var QR is deprecated, update to $QR_DATA_DIRS')
 
 
-if qr_path == 'undefined':
-    qr_path = here + '/examples'
-    print('no $QR path defined, using examples directory')
+if qr_paths == 'undefined':
+    qr_paths = here + '/examples'
+    print('no $QR_DATA_DIRS path defined, using examples directory')
 
+qr_path_list = qr_paths.split(':')
+
+qr_path = qr_path_list[0]
 
 def main(argv):
     if len(argv) == 1:
@@ -128,14 +132,16 @@ def create_alias(topic, shortcut, overwrite=False):
 
 def show_available_files():
     # print('<show available files>')
-    fnames = get_all_qr_filenames()
-    for f in fnames:
-        print(f[len(qr_path) + 1:-4])
+    qrdirs_map = get_all_qr_filenames()
+    for qrdir, fnames in qrdirs_map.items():
+        print(qrdir)
+        for f in fnames:
+            print('  %s' % f[len(qrdir) + 1:-4])
 
 
 def get_all_qr_filenames(aliases=False):
     # TODO: implement aliases=True here?
-    return glob.glob(qr_path + '/*.txt')
+    return {f: glob.glob(f + '/*.txt') for f in qr_path_list}
 
 
 def append_line_to_file(topic, line):
