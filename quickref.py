@@ -178,7 +178,7 @@ def append_line_to_file_multiple(topic, line):
 def open_files_for_editing(topics):
     fnames = [os.path.realpath(__file__)]
     if len(topics) > 0:
-        fnames = [fname for arg in ['unity', 'cpp'] for fname in topic_map[arg]]
+        fnames = [fname for arg in topics for fname in topic_map[arg]]
 
     editor = os.getenv('EDITOR', 'undefined')
     if editor == 'undefined':
