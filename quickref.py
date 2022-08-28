@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python3
 """
 usage:
@@ -8,25 +7,25 @@ a `comment` is any content after the first '#' on a line
 a `cheatsheet` is a text file containing multiple notes, named like <topic>.txt
 a `base path` is a folder containing multiple cheatsheets
 configuration is done via an environment variable:
-QR_DATA_DIRS="/path/to/qr-1:/path/to/qr-2"
-this is a list of paths, delimited with colons, like $PATH.
+QR_DATA_DIR="/path/to/qr"
+this directory can contain subdirectories (partially implemented)
 
-$ qr
-  show available quickref files (in $QR_DATA_DIRS)
-$ qr topic
-  show all lines from all matching $QR_DATA_DIRS/topic.txt
+$ qr (recursive: done)
+  show available quickref files (in $QR_DATA_DIR)
+$ qr topic (recursive: todo)
+  show all lines from all matching $QR_DATA_DIR/*/topic.txt
   a "topic" can be anything, but generally something like a language (py),
   application (blender), library/framework (django), command (git).
   also things like audio, pdf manipulation, CLI image editing.
-$ qr topic pattern
+$ qr topic pattern (recursive: todo)
   show all lines from topic.txt matching regex pattern
 $ qr topic term1 term2 ...
   show all lines from topic.txt matching all terms
-$ qr add topic "line with spaces"
+$ qr add topic "line with spaces"  (recursive: done)
   add "line with spaces" to topic.txt
-$ qr edit [topic1 [topic2 ...]]
+$ qr edit [topic1 [topic2 ...]]  (recursive: done)
   open specified topics in $EDITOR; this file if no topics supplied.
-$ qr alias topic shortcut
+$ qr alias topic shortcut  (recursive: todo)
   create a new alias 'shortcut' for the topic 'topic' (not yet implemented)
 """
 import sys
@@ -36,6 +35,8 @@ import os
 import os.path
 import subprocess
 import re
+from collections import defaultdict
+from pprint import pprint
 
 # this is kind of kludgy - at first I used filesystem soft links for this purpose,
 # but when I realized dropbox doesn't really support soft links, I stopped. I still
@@ -53,25 +54,31 @@ if os.path.exists(alias_file):
 
 external_aliases = {}
 
-qr_paths = os.getenv('QR_DATA_DIRS', 'undefined')
-if qr_paths == 'undefined':
-    qr_paths = os.getenv('QR', 'undefined')
-    if qr_paths != 'undefined':
-        print('env var QR is deprecated, update to $QR_DATA_DIRS')
+PATHVAR_OLD = 'QR'
+PATHVAR_NEW = 'QR_DATA_DIR'
 
+qr_path = os.getenv(PATHVAR_OLD, 'undefined')
+if qr_path != 'undefined':
+    print('env var $%s is deprecated, update to $%s' % (PATHVAR_OLD, PATHVAR_NEW))
 
-if qr_paths == 'undefined':
-    qr_paths = here + '/examples'
-    print('no $QR_DATA_DIRS path defined, using examples directory')
+if qr_path == 'undefined':
+    qr_path = os.getenv(PATHVAR_NEW, 'undefined')
 
-qr_path_list = qr_paths.split(':')
+if qr_path == 'undefined':
+    qr_path = here + '/examples'
+    print('no $%s var defined, using examples directory' % PATHVAR_NEW)
 
-qr_path = qr_path_list[0]
+topic_map = defaultdict(list)  # {'name.txt': [fullpath1, fullpath2, ...], ...}
+for root, dirs, files in os.walk(qr_path):
+    for f in files:
+        if f.endswith('.txt'):
+            topic_map[f[:-4]].append('%s/%s' % (root, f))
+
 
 def main(argv):
     if len(argv) == 1:
         # qr                         # show available topics
-        show_available_files()
+        print_tree(qr_path)
 
     elif argv[1] in ['h', 'help']:
         # qr help                    # show docstring
@@ -81,7 +88,7 @@ def main(argv):
         # qr add topic "new line"    # add line to topic.txt
         # add line to topic.txt
         topic = expand_aliases(argv[2:3])[0]
-        append_line_to_file(topic, argv[3])
+        append_line_to_file_multiple(topic, argv[3])
 
     elif argv[1] in ['e', 'edit']:
         # qr edit [topic [topic      # edit topic.txt or qr.py
@@ -129,31 +136,49 @@ def create_alias(topic, shortcut, overwrite=False):
         print('already exists!')
     aliases[shortcut] = topic
 
-
-def show_available_files():
-    # print('<show available files>')
-    qrdirs_map = get_all_qr_filenames()
-    for qrdir, fnames in qrdirs_map.items():
-        print(qrdir)
-        for f in fnames:
-            print('  %s' % f[len(qrdir) + 1:-4])
-
+def print_tree(pth, level=1):
+    if level == 1:
+        print(pth)
+    fds = os.listdir(pth)
+    for d in fds:
+        if os.path.isdir(pth+'/'+d):
+            print('%s%s/' % (2*level * ' ', d))
+            print_tree(pth + '/' + d, level+1)
+    for f in fds:
+        if f.endswith('.txt'):
+            print('%s%s' % (2*level * ' ', f))
 
 def get_all_qr_filenames(aliases=False):
     # TODO: implement aliases=True here?
-    return {f: glob.glob(f + '/*.txt') for f in qr_path_list}
+    return glob.glob(qr_path + '/*.txt')
 
+def path_from_topic(topic):
+    return qr_path + '/' + topic + '.txt'
 
-def append_line_to_file(topic, line):
+def append_line_to_file_singular(topic, line):
     # print('<append %s: `%s`>' % (qr_path+topic+'.txt', line))
-    with open(qr_path + '/' + topic + '.txt', 'a') as f:
+    fname = path_from_topic(topic)
+    with open(fname, 'a') as f:
         f.write(line + '\n')
 
+def append_line_to_file_multiple(topic, line):
+    files = topic_map[topic]
+    if len(files) == 0:
+        raise FileNotFoundError
+    elif len(files) > 1:
+        print('not adding; multiple matching topics found:')
+        # if this ends up being a problem, then support this:
+        # qr add meta/cpp "foo bar"
+        for f in files:
+            print('  %s' % f)
+    else:
+        with open(files[0], 'a') as f:
+            f.write(line + '\n')
 
 def open_files_for_editing(topics):
     fnames = [os.path.realpath(__file__)]
     if len(topics) > 0:
-        fnames = [qr_path + '/' + topic + '.txt' for topic in topics]
+        fnames = [fname for arg in ['unity', 'cpp'] for fname in topic_map[arg]]
 
     editor = os.getenv('EDITOR', 'undefined')
     if editor == 'undefined':
