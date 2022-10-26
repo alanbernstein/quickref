@@ -139,11 +139,17 @@ def create_alias(topic, shortcut, overwrite=False):
         print('already exists!')
     aliases[shortcut] = topic
 
+
+ignore_list = ['.git']
+
+
 def print_tree(pth, level=1):
     if level == 1:
         print(pth)
     fds = os.listdir(pth)
     for d in fds:
+        if d in ignore_list:
+            continue
         if os.path.isdir(pth+'/'+d):
             print('%s%s/' % (2*level * ' ', d))
             print_tree(pth + '/' + d, level+1)
