@@ -62,7 +62,8 @@ PATHVAR_NEW = 'QR_DATA_DIR'
 
 qr_path = os.getenv(PATHVAR_OLD, 'undefined')
 if qr_path != 'undefined':
-    print('env var $%s is deprecated, update to $%s' % (PATHVAR_OLD, PATHVAR_NEW))
+    print('env var $%s is deprecated, update to $%s' %
+          (PATHVAR_OLD, PATHVAR_NEW))
 
 if qr_path == 'undefined':
     qr_path = os.getenv(PATHVAR_NEW, 'undefined')
@@ -157,9 +158,11 @@ def print_tree(pth, level=1):
         if f.endswith('.txt'):
             print('%s%s' % (2*level * ' ', f))
 
+
 def get_all_qr_filenames(aliases=False):
     # TODO: implement aliases=True here?
     return glob.glob(qr_path + '/**/*.txt', recursive=True)
+
 
 def append_line_to_file(topic, line):
     log.debug('<append %s: `%s`>' % (qr_path+topic+'.txt', line))
@@ -176,6 +179,7 @@ def append_line_to_file(topic, line):
 
     with open(files[0], 'a') as f:
         f.write(line + '\n')
+
 
 def open_files_for_editing(topics):
     if len(topics) == 0:
@@ -198,9 +202,11 @@ def open_files_for_editing(topics):
         cmd = '%s %s' % (editor, fname)
         print(cmd)
         subprocess.call(cmd, shell=True)
-    
+
+
 def show_search_results(topic, pattern_list):
-    log.debug('<show_search_results %s: ' % (topic) + ' '.join(pattern_list) + '>')
+    log.debug('<show_search_results %s: ' %
+              (topic) + ' '.join(pattern_list) + '>')
     if topic == '.':
         show_results_from_all_files(pattern_list)
         return
@@ -242,7 +248,8 @@ def show_results_from_all_files(pattern_list):
 def search_file(fname, pattern_list):
     log.debug('<search_file %s>' % fname)
     res = []
-    compiled_pattern_list = [re.compile(p, re.IGNORECASE) for p in pattern_list]
+    compiled_pattern_list = [re.compile(
+        p, re.IGNORECASE) for p in pattern_list]
     with open(fname) as f:
         for line in f:
             print_flag = True
