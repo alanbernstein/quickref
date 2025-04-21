@@ -45,7 +45,16 @@ import sys
 # aliases.json just contains a single json object containing KV pairs like "numpy": "py",
 # where numpy is an alias for the file $QR/py.txt
 
-log = logging.Logger('qr', level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+
+def log_entry(func):
+    def wrapper(*args, **kwargs):
+        logging.debug(f"enter '{func.__name__}' with args={args}, kwargs={kwargs}")
+        return func(*args, **kwargs)
+    return wrapper
 
 aliases = {}
 here = os.path.dirname(os.path.realpath(__file__))
@@ -113,6 +122,7 @@ def main(argv):
         show_search_results(topic, argv[2:])
 
 
+@log_entry
 def expand_aliases(topics):
     # TODO: use 'external aliases' here... requires more effort though
     topics_out = []
@@ -125,14 +135,17 @@ def expand_aliases(topics):
     return topics_out
 
 
+@log_entry
 def get_aliases():
     return json.load(alias_file)
 
 
+@log_entry
 def save_aliases(aliases):
     json.dump(aliases, alias_file)
 
 
+@log_entry
 def create_alias(topic, shortcut, overwrite=False):
     # TODO: allow overwrite
     aliases = get_aliases()
@@ -144,6 +157,7 @@ def create_alias(topic, shortcut, overwrite=False):
 ignore_list = ['.git']
 
 
+@log_entry
 def print_tree(pth, level=1):
     if level == 1:
         print(pth)
@@ -159,13 +173,15 @@ def print_tree(pth, level=1):
             print('%s%s' % (2*level * ' ', f))
 
 
+@log_entry
 def get_all_qr_filenames(aliases=False):
     # TODO: implement aliases=True here?
     return glob.glob(qr_path + '/**/*.txt', recursive=True)
 
 
+@log_entry
 def append_line_to_file(topic, line):
-    log.debug('<append %s: `%s`>' % (qr_path+topic+'.txt', line))
+    logging.debug('<append %s: `%s`>' % (qr_path+topic+'.txt', line))
     files = topic_map[topic]
     if len(files) <= 1:
         # if exactly one file found: append to this file
@@ -181,6 +197,7 @@ def append_line_to_file(topic, line):
         f.write(line + '\n')
 
 
+@log_entry
 def open_files_for_editing(topics):
     if len(topics) == 0:
         # open this file
@@ -205,7 +222,7 @@ def open_files_for_editing(topics):
 
 
 def show_search_results(topic, pattern_list):
-    log.debug('<show_search_results %s: ' %
+    logging.debug('<show_search_results %s: ' %
               (topic) + ' '.join(pattern_list) + '>')
     if topic == '.':
         show_results_from_all_files(pattern_list)
@@ -234,9 +251,9 @@ def show_search_results(topic, pattern_list):
             # maybe "(fname.*pattern|pattern.*fname)" ??
             show_results_from_all_files(pattern_list)
 
-
+@log_entry
 def show_results_from_all_files(pattern_list):
-    log.debug('<show_results_from_all_files>')
+    logging.debug('<show_results_from_all_files>')
     fnames = get_all_qr_filenames()
     for fname in fnames:
         res = search_file(fname, pattern_list)
@@ -244,9 +261,8 @@ def show_results_from_all_files(pattern_list):
             print('\n%s\n%s' % (fname, '=' * len(fname)))
             print(res)
 
-
+@log_entry
 def search_file(fname, pattern_list):
-    log.debug('<search_file %s>' % fname)
     res = []
     compiled_pattern_list = [re.compile(
         p, re.IGNORECASE) for p in pattern_list]
