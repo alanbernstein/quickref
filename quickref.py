@@ -39,12 +39,6 @@ import re
 import subprocess
 import sys
 
-# this is kind of kludgy - at first I used filesystem soft links for this purpose,
-# but when I realized dropbox doesn't really support soft links, I stopped. I still
-# wanted to support "alias" functionality, so I added this.
-# aliases.json just contains a single json object containing KV pairs like "numpy": "py",
-# where numpy is an alias for the file $QR/py.txt
-
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
@@ -55,6 +49,12 @@ def log_entry(func):
         logging.debug(f"enter '{func.__name__}' with args={args}, kwargs={kwargs}")
         return func(*args, **kwargs)
     return wrapper
+
+# this is kind of kludgy - at first I used filesystem soft links for this purpose,
+# but when I realized dropbox doesn't really support soft links, I stopped. I still
+# wanted to support "alias" functionality, so I added this.
+# aliases.json just contains a single json object containing KV pairs like "numpy": "py",
+# where numpy is an alias for the file $QR/py.txt
 
 aliases = {}
 here = os.path.dirname(os.path.realpath(__file__))
@@ -89,6 +89,7 @@ for root, dirs, files in os.walk(qr_path):
 
 
 def main(argv):
+    print(f'argv: {argv}')
     if len(argv) == 1:
         # qr                         # show available topics
         print_tree(qr_path)

@@ -6,6 +6,8 @@ It is currently just a single python file, which I use by including `#!/usr/loca
 
 Define the environment variable `QR_DATA_DIR`, which should be a path containing text files, each named according to its topic, `topic.txt`.
 
+To use the simple web app interface (query only), define `QR_APP_FILENAME`.
+
 Optionally, make sure your `EDITOR` environment variable is up to date, and qr will check that if you use the `qr edit` command.
 
 
@@ -24,6 +26,8 @@ git clone https://github.com/alanbernstein/cheatsheets $QR_DATA_DIR
 
 ## usage
 Topic files are simple, line-based note snippets. The power of this tool is in creating these files yourself, one line at a time, and including the keywords that you are likely to remember yourself. Some examples are included (they are just reference tables translated to plaintext format).
+
+### CLI
 
 `$ qr`
   show available quickref files (in `$QR_DATA_DIR`)
@@ -50,3 +54,7 @@ a "topic" can be anything, but generally something like a language (py), applica
 
 `$ qr alias topic shortcut`
   create a new alias 'shortcut' for the topic 'topic' (not yet implemented)
+
+
+### web app
+run `make render` to generate a static html page. It includes all your `qr` data as JSON, embedded in the page. This can be stored in a `syncthing` directory for example, for easy mobile viewing.

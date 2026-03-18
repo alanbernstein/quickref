@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>QR</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: monospace;
+      margin: 0;
+      padding: 1em;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      font-size: 16px;
+    }
+    #search {
+      width: 100%;
+      padding: 0.6em 0.75em;
+      font-size: 1em;
+      font-family: monospace;
+      background: #2d2d2d;
+      color: #d4d4d4;
+      border: 1px solid #555;
+      border-radius: 3px;
+      outline: none;
+    }
+    #search:focus { border-color: #888; }
+    #status {
+      display: flex;
+      justify-content: space-between;
+      margin: 0.4em 0;
+      font-size: 0.85em;
+      color: #888;
+      min-height: 1.2em;
+    }
+    #results { margin-top: 0.5em; }
+
+    .topic-block { margin-bottom: 1.5em; }
+    .topic-name {
+      font-size: 0.85em;
+      color: #888;
+      margin-bottom: 0.2em;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .lines {
+      background: #2d2d2d;
+      padding: 0.5em 0.75em;
+      border-radius: 3px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      line-height: 1.5;
+    }
+    .full-file .lines { color: #d4d4d4; }
+    .match { color: #d4d4d4; display: block; }
+    .match mark {
+      background: #5a3e00;
+      color: #ffd580;
+      border-radius: 2px;
+    }
+    .empty { color: #666; font-style: italic; margin-top: 1em; }
+  </style>
+</head>
+<body>
+  <input id="search" placeholder="topic  /  search phrase" autofocus autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+  <div id="status"><span></span><span>%%RENDERED_AT%%</span></div>
+  <div id="results"></div>
+
+  <script>
+    let index = null;
+    let topics = [];
+
+    const searchEl = document.getElementById('search');
+    const statusEl = document.querySelector('#status span');
+    const resultsEl = document.getElementById('results');
+
+    %%DATA_INIT%%
+    function onSearch() {
+      if (!index) return;
+      const q = searchEl.value.trim();
+      resultsEl.innerHTML = '';
+
+      if (!q) {
+        statusEl.textContent = topics.length + ' topics loaded';
+        return;
+      }
+
+      const words = q.split(/\s+/);
+      const firstWord = words[0];
+      const rest = words.slice(1).join(' ');
+
+      // "<topic> <phrase>" → search phrase within that topic only
+      if (rest && index[firstWord] !== undefined) {
+        const rl = rest.toLowerCase();
+        const lines = index[firstWord].split('\n');
+        const matched = lines.filter(l => l.toLowerCase().includes(rl));
+        statusEl.textContent = matched.length
+          ? matched.length + ' line' + (matched.length !== 1 ? 's' : '') + ' in ' + firstWord
+          : 'no matches in ' + firstWord;
+        if (matched.length) {
+          const block = document.createElement('div');
+          block.className = 'topic-block';
+          const linesHtml = matched
+            .map(l => '<span class="match">' + highlight(l, rest) + '</span>')
+            .join('');
+          block.innerHTML =
+            '<div class="topic-name">' + esc(firstWord) + '</div>' +
+            '<div class="lines">' + linesHtml + '</div>';
+          resultsEl.appendChild(block);
+        } else {
+          resultsEl.innerHTML = '<div class="empty">no results for "' + esc(rest) + '" in ' + esc(firstWord) + '</div>';
+        }
+        return;
+      }
+
+      // Single word exact topic match → show full file
+      if (words.length === 1 && index[q] !== undefined) {
+        statusEl.textContent = 'topic: ' + q;
+        const block = document.createElement('div');
+        block.className = 'topic-block full-file';
+        block.innerHTML =
+          '<div class="topic-name">' + esc(q) + '</div>' +
+          '<div class="lines">' + esc(index[q]) + '</div>';
+        resultsEl.appendChild(block);
+        return;
+      }
+
+      // Search all files line by line
+      const ql = q.toLowerCase();
+      let matchCount = 0;
+      let topicCount = 0;
+
+      for (const topic of topics) {
+        const lines = index[topic].split('\n');
+        const matched = lines.filter(l => l.toLowerCase().includes(ql));
+        if (!matched.length) continue;
+
+        topicCount++;
+        matchCount += matched.length;
+
+        const block = document.createElement('div');
+        block.className = 'topic-block';
+        const linesHtml = matched
+          .map(l => '<span class="match">' + highlight(l, q) + '</span>')
+          .join('');
+        block.innerHTML =
+          '<div class="topic-name">' + esc(topic) + '</div>' +
+          '<div class="lines">' + linesHtml + '</div>';
+        resultsEl.appendChild(block);
+      }
+
+      if (matchCount === 0) {
+        statusEl.textContent = 'no matches';
+        resultsEl.innerHTML = '<div class="empty">no results for "' + esc(q) + '"</div>';
+      } else {
+        statusEl.textContent =
+          matchCount + ' line' + (matchCount !== 1 ? 's' : '') +
+          ' in ' + topicCount + ' topic' + (topicCount !== 1 ? 's' : '');
+      }
+    }
+
+    searchEl.addEventListener('input', onSearch);
+    searchEl.addEventListener('change', onSearch);
+
+    function esc(s) {
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    function highlight(line, q) {
+      const escaped = esc(line);
+      const ql = q.toLowerCase();
+      const idx = escaped.toLowerCase().indexOf(ql);
+      if (idx === -1) return escaped;
+      return escaped.slice(0, idx) +
+        '<mark>' + escaped.slice(idx, idx + q.length) + '</mark>' +
+        escaped.slice(idx + q.length);
+    }
+  </script>
+</body>
+</html>
