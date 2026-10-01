@@ -10,9 +10,10 @@ app_filename = os.environ.get('QR_APP_FILENAME') or os.path.join(root, 'qr.html'
 index = {}
 
 for fname in sorted(os.listdir(data_dir)):
-    if not fname.endswith('.txt') or fname.startswith('.') or fname.endswith('.txt~'):
+    if not (fname.endswith('.txt') or fname.endswith('.md')) or fname.startswith('.') or fname.endswith('.txt~'):
         continue
-    topic = fname[:-4]
+    ext = os.path.splitext(fname)[1]
+    topic = fname[:-len(ext)]
     path = os.path.join(data_dir, fname)
     with open(path, 'r', encoding='utf-8', errors='replace') as f:
         index[topic] = f.read()

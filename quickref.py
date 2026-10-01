@@ -4,7 +4,7 @@ usage:
 qr is a concise line-delimited cheatsheet reference CLI.
 a `note` is a single line of text, containing anything you want.
 a `comment` is any content after the first '#' on a line
-a `cheatsheet` is a text file containing multiple notes, named like <topic>.txt
+a `cheatsheet` is a text file containing multiple notes, named like <topic>.{txt,md}
 a `base path` is a folder containing multiple cheatsheets
 configuration is done via an environment variable:
 QR_DATA_DIR="/path/to/qr"
@@ -13,16 +13,16 @@ this directory can contain subdirectories (partially implemented)
 $ qr
   show available quickref files (in $QR_DATA_DIR)
 $ qr topic
-  show all lines from all matching $QR_DATA_DIR/*/topic.txt
+  show all lines from all matching $QR_DATA_DIR/*/topic.{txt,md}
   a "topic" can be anything, but generally something like a language (py),
   application (blender), library/framework (django), command (git).
   also things like audio, pdf manipulation, CLI image editing.
 $ qr topic pattern
-  show all lines from topic.txt matching regex pattern
+  show all lines from topic.{txt,md} matching regex pattern
 $ qr topic term1 term2 ...
-  show all lines from topic.txt matching all terms
+  show all lines from topic.{txt,md} matching all terms
 $ qr add topic "line with spaces"
-  add "line with spaces" to topic.txt
+  add "line with spaces" to topic.{txt,md}
 $ qr edit [topic1 [topic2 [subdir/topic2 ...]]]
   open specified topics in $EDITOR; this file if no topics supplied.
 $ qr alias topic shortcut
@@ -87,15 +87,16 @@ topic_map = defaultdict(list)  # {'topic': [fullpath1, fullpath2, ...], ...}
 for p in qr_paths:
     for root, dirs, files in os.walk(p):
         for f in files:
-            if f.endswith('.txt'):
+            if f.endswith('.txt') or f.endswith('.md'):
                 full_path = os.path.join(root, f)
                 # Key 1: Basename (e.g. 'django')
-                topic_name = f[:-4]
+                ext = os.path.splitext(f)[1]
+                topic_name = f[:-len(ext)]
                 topic_map[topic_name].append(full_path)
                 
                 # Key 2: Relative path (e.g. 'python/django')
                 rel_path = os.path.relpath(full_path, p)
-                rel_topic = rel_path[:-4]
+                rel_topic = rel_path[:-len(ext)]
                 if rel_topic != topic_name:
                     topic_map[rel_topic].append(full_path)
 
@@ -183,7 +184,7 @@ def print_tree(pth, level=1):
             print('%s%s/' % (2*level * ' ', d))
             print_tree(pth + '/' + d, level+1)
     for f in fds:
-        if f.endswith('.txt'):
+        if f.endswith('.txt') or f.endswith('.md'):
             print('%s%s' % (2*level * ' ', f))
 
 
@@ -193,6 +194,7 @@ def get_all_qr_filenames(aliases=False):
     all_files = []
     for p in qr_paths:
         all_files.extend(glob.glob(p + '/**/*.txt', recursive=True))
+        all_files.extend(glob.glob(p + '/**/*.md', recursive=True))
     return all_files
 
 

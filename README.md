@@ -4,7 +4,7 @@ Quickref is a simple CLI tool for interacting with a set of notes files. Use it 
 
 It is currently just a single python file, which I use by including `#!/usr/local/bin/python`, and defining `alias qr="/path/to/quickref.py"`, because I like terse commands.
 
-Define the environment variable `QR_DATA_DIR`, which should be a path containing text files, each named according to its topic, `topic.txt`.
+Define the environment variable `QR_DATA_DIR`, which should be a path containing text files, each named according to its topic, `topic.{txt,md}`.
 
 To use the simple web app interface (query only), define `QR_APP_FILENAME`.
 
@@ -33,21 +33,21 @@ Topic files are simple, line-based note snippets. The power of this tool is in c
   show available quickref files (in `$QR_DATA_DIR`)
   
 `$ qr topic`
-  show all lines from `$QR_DATA_DIR/topic.txt` or `$QR_DATA_DIR/path/topic.txt`
+  show all lines from `$QR_DATA_DIR/topic.{txt,md}` or `$QR_DATA_DIR/path/topic.{txt,md}`
 
 a "topic" can be anything, but generally something like a language (py), application (blender), library/framework (django), command (git). also things like audio, pdf manipulation, CLI image editing.
   
 `$ qr topic pattern`
-  show all lines from `$QR_DATA_DIR/*/topic.txt` matching regex pattern
+  show all lines from `$QR_DATA_DIR/*/topic.{txt,md}` matching regex pattern
 
 `$ qr path/topic pattern`
-  show all lines from `$QR_DATA_DIR/path/topic.txt` matching regex pattern, omitting files from other subdirectories with matching names
+  show all lines from `$QR_DATA_DIR/path/topic.{txt,md}` matching regex pattern, omitting files from other subdirectories with matching names
 
 `$ qr topic term1 term2 ...`
-  show all lines from `$QR_DATA_DIR/topic.txt` matching all terms
+  show all lines from `$QR_DATA_DIR/topic.{txt,md}` matching all terms
 
 `$ qr add topic "line with spaces"`
-  add "line with spaces" to topic.txt
+  add "line with spaces" to topic.{txt,md}
 
 `$ qr edit [topic1 [topic2 ...]]`
   open specified topics in `$EDITOR`
