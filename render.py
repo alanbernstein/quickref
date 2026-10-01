@@ -5,7 +5,7 @@ import os
 from datetime import datetime
 
 root = os.path.dirname(os.path.abspath(__file__))
-data_dir = os.environ.get('QR_DATA_DIR') or os.path.join(root, 'data')
+data_dir = os.environ.get('QR_DATA_PATH') or os.environ.get('QR_DATA_DIR') or os.path.join(root, 'data')
 app_filename = os.environ.get('QR_APP_FILENAME') or os.path.join(root, 'qr.html')
 index = {}
 

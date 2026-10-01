@@ -7,13 +7,13 @@ a `comment` is any content after the first '#' on a line
 a `cheatsheet` is a text file containing multiple notes, named like <topic>.{txt,md}
 a `base path` is a folder containing multiple cheatsheets
 configuration is done via an environment variable:
-QR_DATA_DIR="/path/to/qr"
+QR_DATA_PATH="/path/to/qr"
 this directory can contain subdirectories (partially implemented)
 
 $ qr
-  show available quickref files (in $QR_DATA_DIR)
+  show available quickref files (in $QR_DATA_PATH)
 $ qr topic
-  show all lines from all matching $QR_DATA_DIR/*/topic.{txt,md}
+  show all lines from all matching $QR_DATA_PATH/*/topic.{txt,md}
   a "topic" can be anything, but generally something like a language (py),
   application (blender), library/framework (django), command (git).
   also things like audio, pdf manipulation, CLI image editing.
@@ -66,16 +66,14 @@ if os.path.exists(alias_file):
 
 external_aliases = {}
 
-PATHVAR_OLD = 'QR'
-PATHVAR_NEW = 'QR_DATA_DIR'
-
-qr_env = os.getenv(PATHVAR_OLD, 'undefined')
-if qr_env != 'undefined':
-    print('env var $%s is deprecated, update to $%s' %
-          (PATHVAR_OLD, PATHVAR_NEW))
-
-if qr_env == 'undefined':
-    qr_env = os.getenv(PATHVAR_NEW, 'undefined')
+PATHVAR_NEW = 'QR_DATA_PATH'
+qr_env = os.getenv(PATHVAR_NEW)
+for old in ['QR_DATA_DIR', 'QR']:
+    val = os.getenv(old)
+    if val and not qr_env:
+        print(f'env var ${old} is deprecated, update to ${PATHVAR_NEW}')
+        qr_env = val
+qr_env = qr_env or 'undefined'
 
 if qr_env == 'undefined':
     qr_paths = [here + '/examples']

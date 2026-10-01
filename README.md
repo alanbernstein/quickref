@@ -4,7 +4,7 @@ Quickref is a simple CLI tool for interacting with a set of notes files. Use it 
 
 It is currently just a single python file, which I use by including `#!/usr/local/bin/python`, and defining `alias qr="/path/to/quickref.py"`, because I like terse commands.
 
-Define the environment variable `QR_DATA_DIR`, which should be a path containing text files, each named according to its topic, `topic.{txt,md}`.
+Define the environment variable `QR_DATA_PATH`, which should be a path containing text files, each named according to its topic, `topic.{txt,md}`.
 
 To use the simple web app interface (query only), define `QR_APP_FILENAME`.
 
@@ -20,8 +20,8 @@ git clone https://github.com/alanbernstein/quickref $HOME/code/py/quickref/
 ln -s $HOME/code/py/quickref/quickref.py $HOME/cmd/qr # softlink version
 # alias qr='$HOME/code/py/quickref/quickref.py # alias version
 
-export QR_DATA_DIR="$HOME/qr"
-git clone https://github.com/alanbernstein/cheatsheets $QR_DATA_DIR
+export QR_DATA_PATH="$HOME/qr"
+git clone https://github.com/alanbernstein/cheatsheets $QR_DATA_PATH
 ```
 
 ## usage
@@ -30,21 +30,21 @@ Topic files are simple, line-based note snippets. The power of this tool is in c
 ### CLI
 
 `$ qr`
-  show available quickref files (in `$QR_DATA_DIR`)
+  show available quickref files (in `$QR_DATA_PATH`)
   
 `$ qr topic`
-  show all lines from `$QR_DATA_DIR/topic.{txt,md}` or `$QR_DATA_DIR/path/topic.{txt,md}`
+  show all lines from `$QR_DATA_PATH/topic.{txt,md}` or `$QR_DATA_PATH/path/topic.{txt,md}`
 
 a "topic" can be anything, but generally something like a language (py), application (blender), library/framework (django), command (git). also things like audio, pdf manipulation, CLI image editing.
   
 `$ qr topic pattern`
-  show all lines from `$QR_DATA_DIR/*/topic.{txt,md}` matching regex pattern
+  show all lines from `$QR_DATA_PATH/*/topic.{txt,md}` matching regex pattern
 
 `$ qr path/topic pattern`
-  show all lines from `$QR_DATA_DIR/path/topic.{txt,md}` matching regex pattern, omitting files from other subdirectories with matching names
+  show all lines from `$QR_DATA_PATH/path/topic.{txt,md}` matching regex pattern, omitting files from other subdirectories with matching names
 
 `$ qr topic term1 term2 ...`
-  show all lines from `$QR_DATA_DIR/topic.{txt,md}` matching all terms
+  show all lines from `$QR_DATA_PATH/topic.{txt,md}` matching all terms
 
 `$ qr add topic "line with spaces"`
   add "line with spaces" to topic.{txt,md}
