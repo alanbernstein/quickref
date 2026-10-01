@@ -69,30 +69,43 @@ external_aliases = {}
 PATHVAR_OLD = 'QR'
 PATHVAR_NEW = 'QR_DATA_DIR'
 
-qr_path = os.getenv(PATHVAR_OLD, 'undefined')
-if qr_path != 'undefined':
+qr_env = os.getenv(PATHVAR_OLD, 'undefined')
+if qr_env != 'undefined':
     print('env var $%s is deprecated, update to $%s' %
           (PATHVAR_OLD, PATHVAR_NEW))
 
-if qr_path == 'undefined':
-    qr_path = os.getenv(PATHVAR_NEW, 'undefined')
+if qr_env == 'undefined':
+    qr_env = os.getenv(PATHVAR_NEW, 'undefined')
 
-if qr_path == 'undefined':
-    qr_path = here + '/examples'
+if qr_env == 'undefined':
+    qr_paths = [here + '/examples']
     print('no $%s var defined, using examples directory' % PATHVAR_NEW)
+else:
+    qr_paths = [p for p in qr_env.split(os.pathsep) if p]
 
-topic_map = defaultdict(list)  # {'name.txt': [fullpath1, fullpath2, ...], ...}
-for root, dirs, files in os.walk(qr_path):
-    for f in files:
-        if f.endswith('.txt'):
-            topic_map[f[:-4]].append('%s/%s' % (root, f))
+topic_map = defaultdict(list)  # {'topic': [fullpath1, fullpath2, ...], ...}
+for p in qr_paths:
+    for root, dirs, files in os.walk(p):
+        for f in files:
+            if f.endswith('.txt'):
+                full_path = os.path.join(root, f)
+                # Key 1: Basename (e.g. 'django')
+                topic_name = f[:-4]
+                topic_map[topic_name].append(full_path)
+                
+                # Key 2: Relative path (e.g. 'python/django')
+                rel_path = os.path.relpath(full_path, p)
+                rel_topic = rel_path[:-4]
+                if rel_topic != topic_name:
+                    topic_map[rel_topic].append(full_path)
 
 
 def main(argv):
     print(f'argv: {argv}')
     if len(argv) == 1:
         # qr                         # show available topics
-        print_tree(qr_path)
+        for p in qr_paths:
+            print_tree(p)
 
     elif argv[1] in ['h', 'help']:
         # qr help                    # show docstring
@@ -177,26 +190,31 @@ def print_tree(pth, level=1):
 @log_entry
 def get_all_qr_filenames(aliases=False):
     # TODO: implement aliases=True here?
-    return glob.glob(qr_path + '/**/*.txt', recursive=True)
+    all_files = []
+    for p in qr_paths:
+        all_files.extend(glob.glob(p + '/**/*.txt', recursive=True))
+    return all_files
 
 
 @log_entry
 def append_line_to_file(topic, line):
-    logging.debug('<append %s: `%s`>' % (qr_path+topic+'.txt', line))
     files = topic_map[topic]
-    if len(files) <= 1:
+    if len(files) == 1:
         # if exactly one file found: append to this file
-        # if no files found: create new file
-        files = [qr_path + '/' + topic + '.txt']
+        target_file = files[0]
     elif len(files) > 1:
         print('not adding; multiple matching topics found:')
         for f in files:
             print('  %s' % f)
         return
+    else:
+        # if no files found: create new file in primary directory
+        target_file = os.path.join(qr_paths[0], topic + '.txt')
+        os.makedirs(os.path.dirname(target_file), exist_ok=True)
 
-    with open(files[0], 'a') as f:
+    logging.debug('<append %s: `%s`>' % (target_file, line))
+    with open(target_file, 'a') as f:
         f.write(line + '\n')
-
 
 @log_entry
 def open_files_for_editing(topics):
@@ -205,11 +223,15 @@ def open_files_for_editing(topics):
         fnames = [os.path.realpath(__file__)]
     else:
         # open all qr files for each specified topic
-        fnames = [fname for arg in topics for fname in topic_map[arg]]
-
-    if fnames == []:
-        # create a new qr file
-        fnames = [qr_path + '/' + t + '.txt' for t in topics]
+        fnames = []
+        for t in topics:
+            if t in topic_map:
+                fnames.extend(topic_map[t])
+            else:
+                # new file: add to primary directory and create
+                fname = os.path.join(qr_paths[0], t + '.txt')
+                os.makedirs(os.path.dirname(fname), exist_ok=True)
+                fnames.append(fname)
 
     editor = os.getenv('EDITOR', 'undefined')
     if editor == 'undefined':
